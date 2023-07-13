@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require("./User");
 const {jwtOptions} = require("./passport")
 
-const verifyUser = async (req, res) => {
+const registerUser = async (req, res) => {
   
    await User.create({
       email: req.body.email,
@@ -14,24 +14,23 @@ const verifyUser = async (req, res) => {
 
   };
 
-const registerUser = async (req, res) => {
+const verifyUser = async (req, res) => {
     console.log(req.body);
-    const user = await User.findOne({ 
-        where: { 
-          email: req.body.email,
-          password: req.body.password,
-          username: req.body.username,
-        }
+    let user
+    const { email, password, username } = req.body;
+    if (email) {
+      user = await User.findOne({ 
+        where: { email, password }
       });
-      
-  //проверка doesnt work correctly, when i want to put incorrect password then it shows user not found
-    if (!user) {
-      res.status(401).send({ error: "user not found" });
-    } else if (user.email !== req.body.email) {
-      res.status(401).send({ error: "email is incorrect" });
-    } else if (user.password !== req.body.password) {
-      res.status(401).send({ error: "password is incorrect" });
     } else {
+      user = await User.findOne({ 
+        where: { username, password }
+      });
+    }
+      
+    if (!user) {
+      res.status(401).send({ error: "User not found or password is incorrect" });
+    }  else {
           
       const token = jwt.sign({
         id: user.id, 
