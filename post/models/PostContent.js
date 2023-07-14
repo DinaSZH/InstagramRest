@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../../../config/db"); // importing settings for connection to db
+const sequelize = require("../../config/db"); // importing settings for connection to db
 const Post = require("./Post");
 
 const PostContent = sequelize.define("PostContent", {
