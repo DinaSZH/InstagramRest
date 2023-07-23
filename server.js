@@ -15,7 +15,7 @@ app.use(passport.initialize());
 require('./app/auth/passport')
 
 app.use(require("./app/auth/routes"));
-app.use(require("./post/routes"));
+app.use(require("./app/post/routes"));
 
 app.get("/", (req, res) => {
   res.send("ok");
