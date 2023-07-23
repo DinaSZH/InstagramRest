@@ -13,4 +13,5 @@ const Like = sequelize.define("Like", {
 Like.belongsTo(Post, { foreignKey: "postId" });
 Like.belongsTo(User, { foreignKey: "userId" });
 
+Post.hasMany(Like, {foreignKey: 'postId', as: "like"}); 
 module.exports = Like;

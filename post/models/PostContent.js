@@ -15,4 +15,6 @@ const PostContent = sequelize.define("PostContent", {
 
 PostContent.belongsTo(Post, { foreignKey: "postId" });
 
+Post.hasMany(PostContent, {foreignKey: 'postId', as: "postContent"}); 
+
 module.exports = PostContent;

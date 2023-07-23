@@ -1,50 +1,94 @@
 const jwt = require('jsonwebtoken');
-
+const bcrypt = require('bcrypt');
 const User = require("./User");
-const {jwtOptions} = require("./passport")
+const {jwtOptions} = require("./passport");
+const fs = require('fs');
+const path = require("path");
 
-const registerUser = async (req, res) => {
+
+
+const signUp = async (req, res) => {
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(req.body.password, salt);
   
    await User.create({
       email: req.body.email,
-      password: req.body.password,
-      username: req.body.username
+      password: hashedPassword,
+      username: req.body.username,
+      bio: req.body.bio,
+      user_image: '/userLogo/' + req.file.filename,
+
     });
     res.status(200).end();
 
   };
 
-const verifyUser = async (req, res) => {
-    console.log(req.body);
-    let user
-    const { email, password, username } = req.body;
-    if (email) {
-      user = await User.findOne({ 
-        where: { email, password }
-      });
-    } else {
-      user = await User.findOne({ 
-        where: { username, password }
-      });
+
+  const login = async (req, res) => {
+    if(!req.body.email || req.body.email.length === 0 ||
+      !req.body.password || req.body.password.length === 0){
+        res.status(401).send({message : "Bad Credentials"});
+      } else{
+
+        const user = await User.findOne({
+          where: {
+            email: req.body.email
+          }
+        })
+
+        if(!user) return res.status(401).send({message: "User with that email doenst exist"});
+
+        const isMatch = await bcrypt.compare(req.body.password, user.password);
+
+        if(isMatch){
+
+          const token = jwt.sign({
+                    id: user.id, 
+                    email: user.email,
+                    password: user.password,
+                    username: user.username, 
+                    bio: user.bio,
+                    user_image: user.user_image
+                  }, jwtOptions.secretOrKey,
+                  { expiresIn: 24 * 60 * 60 * 365});
+                  res.status(200).send({token});
+
+        } else {  
+          res.status(401).send({message: "Password is incorrect"});
+          }
+      }
     }
-      
-    if (!user) {
-      res.status(401).send({ error: "User not found or password is incorrect" });
-    }  else {
-          
-      const token = jwt.sign({
-        id: user.id, 
-        email: user.email,
-        password: user.password,
-        username: user.username, 
-        bio: user.bio,
-      }, jwtOptions.secretOrKey,
-      { expiresIn: 24 * 60 * 60 * 365});
-      res.status(200).send({token});
-    }
-  };
+
+
+    const editUser = async (req, res) => {
+      const userId = req.user.id;
+    
+      try {
+        const user = await User.findByPk(userId);
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+    
+        fs.unlinkSync(path.join(__dirname + "../../../public/" + user.user_image));
+    
+        user.username = username.req.body;
+        user.email = email.req.body;
+        user.bio = bio.req.body;
+        user.user_image = `/images/films/${req.file.filename}`;
+    
+        await user.save();
+    
+        return res.status(200).send({ message: 'User data updated successfully' });
+      } catch (error) {
+        console.error('Error updating user data:', error);
+        return res.status(500).send({ error: 'Internal server error' });
+      }
+    };
+     
 
   module.exports = {
-    verifyUser,
-    registerUser
+    signUp,
+    login,
+    editUser
   };

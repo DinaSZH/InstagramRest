@@ -13,4 +13,7 @@ const SavedPost = sequelize.define("SavedPost", {
 SavedPost.belongsTo(Post, { foreignKey: "postId" });
 SavedPost.belongsTo(User, { foreignKey: "userId" });
 
+Post.hasMany(SavedPost, {foreignKey: 'postId', as: "savedPost"}); 
+
+
 module.exports = SavedPost ;
