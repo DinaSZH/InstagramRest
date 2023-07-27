@@ -6,14 +6,7 @@ const Post = sequelize.define("Post", {
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
-    },
-    publish_date: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },   
-  },
-  {
-    timestamps: false, // Отключение использования полей createdAt и updatedAt
+    }
   }
 );
 

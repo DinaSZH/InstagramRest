@@ -1,48 +1,75 @@
 const Post = require("./models/Post");
-const Comment = require("./models/Comment");
-const Like = require("./models/Like");
 const PostContent = require("./models/PostContent");
-const SavedPost = require("./models/SavedPost");
+const fs = require('fs');
+const path = require("path");
 
 const createPost = async (req, res) => {
-    
-  const post = await Post.create({
+    const post = await Post.create({
       description: req.body.description,
-      publish_date: req.body.publish_date,
       userId: req.user.id
-  })
-
-  if(req.body.comment && req.body.comment.length >0 ){
-      req.body.comment.forEach(async comm => {
-          await Comment.create({
-              postId: post.id,
-              comment_text: comm.comment_text,
-              userId: req.user.id
-          })
+    });
+  
+    if (req.files && req.files.length > 0) {
+      // Handle multiple files
+      for (const file of req.files) {
+        await PostContent.create({
+          postId: post.id,
+          userId: req.user.id,
+          content_url: '/posts/' + file.filename
+        });
+      }
+    } else if (req.file) {
+      // Handle single file
+      await PostContent.create({
+        postId: post.id,
+        userId: req.user.id,
+        content_url: '/posts/' + req.file.filename
       });
-  }
+    }
+  
+    res.status(200).send(post);
+  };
+  
 
-  if(req.body.like && req.body.like.length >0 ){
-      req.body.like.forEach(async lk => {
-          await Like.create({
-              postId: post.id,
-              userId: req.user.id
-          })
-      });
-  }
+// const createPost = async (req, res) => {
+    
+//   const post = await Post.create({
+//       description: req.body.description,
+//       userId: req.user.id
+//   })
 
-  if(req.body.postContent && req.body.postContent.length >0 ){
-      req.body.postContent.forEach(async content => {
-          await PostContent.create({
-            postId: post.id,
-            userId: req.user.id,
-            content_url: content.content_url
-          })
-      });
-  }
+//   if(req.body.comment && req.body.comment.length >0 ){
+//       req.body.comment.forEach(async comm => {
+//           await Comment.create({
+//               postId: post.id,
+//               comment_text: comm.comment_text,
+//               userId: req.user.id
+//           })
+//       });
+//   }
 
-  res.status(200).send(post);
-}
+//   if(req.body.like && req.body.like.length >0 ){
+//       req.body.like.forEach(async lk => {
+//           await Like.create({
+//               postId: post.id,
+//               userId: req.user.id
+//           })
+//       });
+//   }
+
+// if (req.body.postContent && req.body.postContent.length > 0) {
+//     req.body.postContent.forEach(async (content) => {
+//       const postContent = await PostContent.create({
+//         postId: post.id,
+//         userId: req.user.id,
+//         content_url: '/posts/' + content.filename, // Use the unique filename for each content
+//       });
+//     });
+//   }
+  
+
+//   res.status(200).send(post);
+// }
 
 ////////////////////////////
 
@@ -73,14 +100,6 @@ const getPostById = async (req, res) => {
   const post = await Post.findByPk(req.params.id, {
       include: [
           {
-              model: Comment,
-              as: "comment"
-          },
-          {
-              model: Like,
-              as: "like"
-          },
-          {
               model: PostContent,
               as: "postContent"
           },
@@ -109,52 +128,20 @@ const deletePostById = async (req, res) => {
 const editPost = async (req, res) => {
     await Post.update({
         description: req.body.description,
-        publish_date: req.body.publish_date,
         userId: req.user.id
     }, {
         where: {
-            id:req.body.id
+            id:req.params.id
     }})
-
-    await Comment.destroy({
-        where: {
-            postId: req.body.id
-        }
-    }) 
-
-    await Like.destroy({
-        where: {
-            postId: req.body.id
-        }
-    })
 
     await PostContent.destroy({
         where: {
-            postId: req.body.id
+            postId: req.params.id
         }
     })
 
     const post = {
-        id: req.body.id
-    }
-
-    if(req.body.comment && req.body.comment.length >0 ){
-        req.body.comment.forEach(async comm => {
-            await Comment.create({
-                postId: post.id,
-                comment_text: comm.comment_text,
-                userId: req.user.id
-            })
-        });
-    }
-  
-    if(req.body.like && req.body.like.length >0 ){
-        req.body.like.forEach(async lk => {
-            await Like.create({
-                postId: post.id,
-                userId: req.user.id
-            })
-        });
+        id: req.params.id
     }
   
     if(req.body.postContent && req.body.postContent.length >0 ){

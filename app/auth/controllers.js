@@ -63,7 +63,7 @@ const signUp = async (req, res) => {
 
     const editUser = async (req, res) => {
       const userId = req.user.id;
-    
+      console.log(req.file)
       try {
         const user = await User.findByPk(userId);
         if (!user) {
@@ -72,10 +72,10 @@ const signUp = async (req, res) => {
     
         fs.unlinkSync(path.join(__dirname + "../../../public/" + user.user_image));
     
-        user.username = username.req.body;
-        user.email = email.req.body;
-        user.bio = bio.req.body;
-        user.user_image = `/images/films/${req.file.filename}`;
+        user.username = req.body.username;
+        user.email = req.body.email;
+        user.bio = req.body.bio;
+        user.user_image = `/userLogo/${req.file.filename}`;
     
         await user.save();
     
