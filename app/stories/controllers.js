@@ -3,7 +3,7 @@ const { Op, DATE } = require("sequelize");
 
 const createStories = async (req, res) => {
     const stories = await Stories.create({
-        content_stories: req.body.content_stories,
+        content_stories: '/stories/' + req.file.filename,
         userId: req.user.id
     })
 
