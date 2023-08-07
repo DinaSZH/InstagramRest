@@ -159,7 +159,7 @@ const editPost = async (req, res) => {
 /////////////
 
 const getPostsByUsername = async (req, res) => {
-  const username = req.params.username; // Use req.params.username
+  const username = req.params.username; 
 
   try {
     const user = await User.findOne({ where: { username } });
@@ -169,7 +169,7 @@ const getPostsByUsername = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const posts = await Post.findAll({ where: { userId: user.id } }); // Use user.id
+    const posts = await Post.findAll({ where: { userId: user.id } }); 
 
     res.status(200).send(posts);
   } catch (error) {

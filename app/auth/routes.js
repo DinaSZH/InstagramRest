@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { signUp, login, editUser, followUser, unfollowUser } = require("./controllers");
+const { signUp, login, editUser, followUser, unfollowUser, getFollowers, getFollowings, getUserInfo} = require("./controllers");
 const {validateSignup}  = require("./middlewares") ; 
 const {upload} = require("./utils");
 const passport = require("passport");
@@ -14,4 +14,9 @@ router.put('/api/auth/edit',  upload.single('user_image'), passport.authenticate
 // followers
 router.post("/api/users/:id/following", passport.authenticate("jwt", { session: false }), followUser);
 router.delete("/api/users/:id/following", passport.authenticate("jwt", { session: false }), unfollowUser);
+router.get("/api/followers/byUsername/:username",  getFollowers);
+router.get("/api/followings/byUsername/:username", getFollowings);
+router.get("/api/userInfo/:username", getUserInfo);
+
+
 module.exports = router;

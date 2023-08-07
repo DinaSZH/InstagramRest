@@ -117,10 +117,70 @@ const signUp = async (req, res) => {
         res.status(500).json({ message: "Error unfollowing user" });
       }
     };
+
+    const getFollowers = async (req, res) => {
+      const username = req.params.username; 
+      try {
+        const user = await User.findOne({ where: { username } });
+        console.log('Found user:', user);
+    
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+    
+        const followers = await Follower.findAll({ where: { userId: user.id } }); 
+    
+        res.status(200).send(followers);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred while fetching followers' });
+      }
+
+    }
+
+    const getFollowings = async (req, res) => {
+      const username = req.params.username; 
+
+      try {
+        const user = await User.findOne({ where: { username } });
+        console.log('Found user:', user);
+    
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+    
+        const followings = await Follower.findAll({ where: { followerId: user.id } }); 
+    
+        res.status(200).send(followings);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred while fetching following users' });
+      }
+    }
+
+    const getUserInfo = async (req, res) => {
+      const username = req.params.username;
+
+      try {
+        const user = await User.findOne({ where: { username } });
+    
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+    
+        res.status(200).send(user);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred while fetching user details' });
+      }
+    }
   module.exports = {
     signUp,
     login,
     editUser,
     followUser,
-    unfollowUser
+    unfollowUser,
+    getFollowers,
+    getFollowings,
+    getUserInfo
   };
