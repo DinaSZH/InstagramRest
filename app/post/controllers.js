@@ -1,4 +1,5 @@
 const Post = require("./models/Post");
+const User = require('../auth/User');
 const PostContent = require("./models/PostContent");
 const fs = require('fs');
 const path = require("path");
@@ -155,6 +156,28 @@ const editPost = async (req, res) => {
     }
 }
 
+/////////////
+
+const getPostsByUsername = async (req, res) => {
+  const username = req.params.username; // Use req.params.username
+
+  try {
+    const user = await User.findOne({ where: { username } });
+    console.log('Found user:', user);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const posts = await Post.findAll({ where: { userId: user.id } }); // Use user.id
+
+    res.status(200).send(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while fetching posts' });
+  }
+}
+
 
 module.exports = {
     createPost,
@@ -162,5 +185,6 @@ module.exports = {
     getAllPosts,
     getPostById,
     deletePostById, 
-    editPost
+    editPost,
+    getPostsByUsername
 };

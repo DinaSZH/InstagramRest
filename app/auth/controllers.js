@@ -4,6 +4,7 @@ const User = require("./User");
 const {jwtOptions} = require("./passport");
 const fs = require('fs');
 const path = require("path");
+const Follower = require("./Follower");
 
 
 
@@ -87,8 +88,39 @@ const signUp = async (req, res) => {
     };
      
 
+   const  followUser = async (req, res) => {
+      try {
+        const userId = req.user.id; // Current user's ID
+        const followerId = req.params.id; // User to follow's ID
+
+        console.log("userId:", userId);
+    console.log("followerId:", followerId);
+    
+        const follow = await Follower.create({ userId, followerId });
+        res.status(201).json(follow);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error following user" });
+      }
+    };
+    
+    const unfollowUser = async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const followerId = req.params.userId;
+    
+        await Follower.destroy({ where: { userId, followerId } });
+    
+        res.status(200).json({ message: "Unfollowed successfully" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error unfollowing user" });
+      }
+    };
   module.exports = {
     signUp,
     login,
-    editUser
+    editUser,
+    followUser,
+    unfollowUser
   };
