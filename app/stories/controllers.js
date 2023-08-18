@@ -2,15 +2,20 @@ const Stories = require("./Stories");
 const { Op, DATE } = require("sequelize");
 
 const createStories = async (req, res) => {
+  try{
     const stories = await Stories.create({
         content_stories: '/stories/' + req.file.filename,
         userId: req.user.id
     })
 
     res.status(200).send(stories);
+  } catch(error){
+    res.status(500).send(error)
+}
 }
 
 const deleteStories = async (req, res) => {
+  try{
     const story = await Stories.destroy({
         where: {
             id: req.params.id,
@@ -18,6 +23,9 @@ const deleteStories = async (req, res) => {
     })
   
     res.status(200).end();
+  } catch(error){
+    res.status(500).send(error)
+}
 }
 
 const getMyStoriesForLast24Hours = async (req, res) => {

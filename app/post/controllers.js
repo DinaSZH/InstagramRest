@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require("path");
 
 const createPost = async (req, res) => {
+  try{
     const post = await Post.create({
       description: req.body.description,
       userId: req.user.id
@@ -29,6 +30,9 @@ const createPost = async (req, res) => {
     }
   
     res.status(200).send(post);
+  } catch(error){
+    res.status(500).send(error)
+}
   };
   
 
@@ -75,12 +79,15 @@ const createPost = async (req, res) => {
 ////////////////////////////
 
 const getAllMyPosts = async (req, res) => {
-
+  try{
   const posts = await Post.findAll({
       where: {userId:req.user.id},
   })
 
   res.status(200).send(posts);
+} catch(error){
+  res.status(500).send(error)
+}
 }
 
 //////////////////////////////
@@ -97,7 +104,7 @@ const getAllPosts = async (req, res) => {
 
 
 const getPostById = async (req, res) => {
-
+  try{
   const post = await Post.findByPk(req.params.id, {
       include: [
           {
@@ -108,12 +115,15 @@ const getPostById = async (req, res) => {
   });
 
   res.status(200).send(post);
+} catch(error){
+  res.status(500).send(error)
+}
 }
 
 ////////////////
 
 const deletePostById = async (req, res) => {
-
+  try{
   const data = await Post.destroy({
       where: {
           id: req.params.id,
@@ -121,12 +131,16 @@ const deletePostById = async (req, res) => {
   })
 
   res.status(200).end();
+} catch(error){
+  res.status(500).send(error)
+}
 }
 
 
 /////////////
 
 const editPost = async (req, res) => {
+  try{
     await Post.update({
         description: req.body.description,
         userId: req.user.id
@@ -154,6 +168,9 @@ const editPost = async (req, res) => {
             })
         });
     }
+  } catch(error){
+    res.status(500).send(error)
+}
 }
 
 /////////////

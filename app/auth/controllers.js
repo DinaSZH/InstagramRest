@@ -10,6 +10,8 @@ const Follower = require("./Follower");
 
 const signUp = async (req, res) => {
 
+  try {
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(req.body.password, salt);
   
@@ -22,6 +24,9 @@ const signUp = async (req, res) => {
 
     });
     res.status(200).end();
+  } catch(error){
+    res.status(500).send(error)
+}
 
   };
 
@@ -174,6 +179,38 @@ const signUp = async (req, res) => {
         res.status(500).json({ message: 'An error occurred while fetching user details' });
       }
     }
+
+  const getSuggestions = async (req, res) => {
+    const userId = req.user.id; // Get the ID of the current user
+
+    try {
+      // Get followers of the user
+      const userFollowers = await Follower.findAll({
+        where: { userId },
+        limit: 5,
+        order: [['id', 'DESC']], // Change 'createdAt' to 'id'
+      });
+
+      // Get users who are followed by the user's followers
+      const suggestedUserIds = await Follower.findAll({
+        where: { followerId: userFollowers.map(follower => follower.followerId) },
+        limit: 5,
+        order: [['id', 'DESC']], // Change 'createdAt' to 'id'
+      });
+
+      // Get information about suggested users
+      const suggestions = await User.findAll({
+        where: { id: suggestedUserIds.map(suggestedUser => suggestedUser.userId) },
+        limit: 5,
+        attributes: ['id', 'username', 'user_image', 'bio'],
+      });
+
+      res.status(200).json(suggestions);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error fetching suggestions' });
+    }
+  }
   module.exports = {
     signUp,
     login,
@@ -182,5 +219,6 @@ const signUp = async (req, res) => {
     unfollowUser,
     getFollowers,
     getFollowings,
-    getUserInfo
+    getUserInfo,
+    getSuggestions
   };

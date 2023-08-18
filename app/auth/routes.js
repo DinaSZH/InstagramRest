@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { signUp, login, editUser, followUser, unfollowUser, getFollowers, getFollowings, getUserInfo} = require("./controllers");
+const { signUp, login, editUser, followUser, unfollowUser, getFollowers, getFollowings, getUserInfo, getSuggestions} = require("./controllers");
 const {validateSignup}  = require("./middlewares") ; 
 const {upload} = require("./utils");
 const passport = require("passport");
@@ -17,6 +17,6 @@ router.delete("/api/users/:id/following", passport.authenticate("jwt", { session
 router.get("/api/followers/byUsername/:username",  getFollowers);
 router.get("/api/followings/byUsername/:username", getFollowings);
 router.get("/api/userInfo/:username", getUserInfo);
-
+router.get("/api/suggestions", passport.authenticate("jwt", { session: false }), getSuggestions);
 
 module.exports = router;
