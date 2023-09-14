@@ -12,8 +12,8 @@ router.put('/api/auth/edit',  upload.single('user_image'), passport.authenticate
 
 
 // followers
-router.post("/api/users/:id/following", passport.authenticate("jwt", { session: false }), followUser);
-router.delete("/api/users/:id/following", passport.authenticate("jwt", { session: false }), unfollowUser);
+router.post("/api/users/following/:id", passport.authenticate("jwt", { session: false }), followUser);
+router.delete("/api/users/following/:id", passport.authenticate("jwt", { session: false }), unfollowUser);
 router.get("/api/followers/byUsername/:username",  getFollowers);
 router.get("/api/followings/byUsername/:username", getFollowings);
 router.get("/api/userInfo/:username", getUserInfo);

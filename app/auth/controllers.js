@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require("./User");
 const {jwtOptions} = require("./passport");
+const { Op } = require('sequelize');
 const fs = require('fs');
 const path = require("path");
 const Follower = require("./Follower");
@@ -93,13 +94,17 @@ const signUp = async (req, res) => {
     };
      
 
-   const  followUser = async (req, res) => {
+    const followUser = async (req, res) => {
       try {
-        const userId = req.user.id; // Current user's ID
-        const followerId = req.params.id; // User to follow's ID
+        const userId = parseInt(req.params.id, 10);; // Current user's ID
+        const followerId = req.user.id; // User to follow's ID
+        console.log("UserId: ", userId);
+          console.log("FollowerId: ", followerId);
+    
+        if (userId === followerId) {
 
-        console.log("userId:", userId);
-    console.log("followerId:", followerId);
+          return res.status(400).json({ message: "Cannot follow yourself" });
+        }
     
         const follow = await Follower.create({ userId, followerId });
         res.status(201).json(follow);
@@ -108,6 +113,7 @@ const signUp = async (req, res) => {
         res.status(500).json({ message: "Error following user" });
       }
     };
+    
     
     const unfollowUser = async (req, res) => {
       try {
@@ -167,7 +173,8 @@ const signUp = async (req, res) => {
       const username = req.params.username;
 
       try {
-        const user = await User.findOne({ where: { username } });
+        const user = await User.findOne({ where: { username },
+          attributes: ['id', 'username', 'user_image', 'bio'], });
     
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
@@ -180,37 +187,50 @@ const signUp = async (req, res) => {
       }
     }
 
-  const getSuggestions = async (req, res) => {
-    const userId = req.user.id; // Get the ID of the current user
-
-    try {
-      // Get followers of the user
-      const userFollowers = await Follower.findAll({
-        where: { userId },
-        limit: 5,
-        order: [['id', 'DESC']], // Change 'createdAt' to 'id'
-      });
-
-      // Get users who are followed by the user's followers
-      const suggestedUserIds = await Follower.findAll({
-        where: { followerId: userFollowers.map(follower => follower.followerId) },
-        limit: 5,
-        order: [['id', 'DESC']], // Change 'createdAt' to 'id'
-      });
-
-      // Get information about suggested users
-      const suggestions = await User.findAll({
-        where: { id: suggestedUserIds.map(suggestedUser => suggestedUser.userId) },
-        limit: 5,
-        attributes: ['id', 'username', 'user_image', 'bio'],
-      });
-
-      res.status(200).json(suggestions);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching suggestions' });
-    }
-  }
+    const getSuggestions = async (req, res) => {
+      const userId = req.user.id;
+    
+      try {
+        // Get IDs of the followers of the user
+        const userFollowerIds = await Follower.findAll({
+          where: { userId },
+          attributes: ['followerId'],
+        });
+    
+        // Get IDs of users who are followed by the followers of the user
+        const suggestedUserIds = await Follower.findAll({
+          where: {
+            followerId: userFollowerIds.map(follower => follower.followerId),
+            userId: { [Op.not]: userId },
+          },
+          attributes: ['userId'],
+        });
+    
+        // Get IDs of users whom the current user is already following
+        const followedUserIds = await Follower.findAll({
+          where: { followerId: userId },
+          attributes: ['userId'],
+        });
+    
+        // Filter out the IDs of users whom the current user is already following
+        const filteredSuggestedUserIds = suggestedUserIds.filter(suggestedUser => {
+          return !followedUserIds.some(followedUser => followedUser.userId === suggestedUser.userId);
+        });
+    
+        // Get information about suggested users
+        const suggestions = await User.findAll({
+          where: { id: filteredSuggestedUserIds.map(suggestedUser => suggestedUser.userId) },
+          limit: 5,
+          attributes: ['id', 'username', 'user_image', 'bio'],
+        });
+    
+        res.status(200).json(suggestions);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching suggestions' });
+      }
+    };
+    
   module.exports = {
     signUp,
     login,
