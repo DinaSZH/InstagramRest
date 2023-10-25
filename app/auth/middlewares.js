@@ -15,13 +15,13 @@ const validateSignup = async (req, res, next)=>{
         errors.password = "Поле Пароль обязательное";
     }
 
-    if(!req.body.password2 || req.body.password2.length === 0) {
-        errors.password2 = "Поле Подтвердить пароль обязательное";
-    }
+    // if(!req.body.password2 || req.body.password2.length === 0) {
+    //     errors.password2 = "Поле Подтвердить пароль обязательное";
+    // }
 
-    if(req.body.password !== req.body.password2) {
-        errors.password2 = "Пароли не совпадают";
-    }
+    // if(req.body.password !== req.body.password2) {
+    //     errors.password2 = "Пароли не совпадают";
+    // }
 
     const user = await User.findOne({
         where: {
