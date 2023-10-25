@@ -12,9 +12,9 @@ module.exports = {
   },
   production: {
     username: "doadmin",
-    password: "AVNS_jS3x-ilSQEu77mrnLxq",
+    password: "AVNS_n7uBP1tnhQQx3oGTOy2",
     database: "defaultdb",
-    host: "instagram-do-user-14539456-0.b.db.ondigitalocean.com",
+    host: "db-postgresql-instagram-do-user-14842323-0.c.db.ondigitalocean.com",
     dialect: "postgres",
     port: 25060,
     dialectOptions: {
