@@ -34,47 +34,6 @@ const createPost = async (req, res) => {
     res.status(500).send(error)
 }
   };
-  
-
-// const createPost = async (req, res) => {
-    
-//   const post = await Post.create({
-//       description: req.body.description,
-//       userId: req.user.id
-//   })
-
-//   if(req.body.comment && req.body.comment.length >0 ){
-//       req.body.comment.forEach(async comm => {
-//           await Comment.create({
-//               postId: post.id,
-//               comment_text: comm.comment_text,
-//               userId: req.user.id
-//           })
-//       });
-//   }
-
-//   if(req.body.like && req.body.like.length >0 ){
-//       req.body.like.forEach(async lk => {
-//           await Like.create({
-//               postId: post.id,
-//               userId: req.user.id
-//           })
-//       });
-//   }
-
-// if (req.body.postContent && req.body.postContent.length > 0) {
-//     req.body.postContent.forEach(async (content) => {
-//       const postContent = await PostContent.create({
-//         postId: post.id,
-//         userId: req.user.id,
-//         content_url: '/posts/' + content.filename, // Use the unique filename for each content
-//       });
-//     });
-//   }
-  
-
-//   res.status(200).send(post);
-// }
 
 ////////////////////////////
 
@@ -82,6 +41,12 @@ const getAllMyPosts = async (req, res) => {
   try{
   const posts = await Post.findAll({
       where: {userId:req.user.id},
+      include: [
+        {
+          model: PostContent,
+          as: "postContent"
+        }
+      ]
   })
 
   res.status(200).send(posts);
@@ -92,14 +57,26 @@ const getAllMyPosts = async (req, res) => {
 
 //////////////////////////////
 const getAllPosts = async (req, res) => {
-  const posts = await Post.findAll();
-  if(posts){
-    res.status(200).send({ posts });
-  } else{
-    res.status(200).send("Empty");
-  }
+  try {
+    const posts = await Post.findAll({
+      include: [
+        {
+          model: PostContent,
+          as: "postContent"
+        }
+      ]
+    });
 
+    if (posts) {
+      res.status(200).send({ posts });
+    } else {
+      res.status(200).send("Empty");
+    }
+  } catch (error) {
+    res.status(500).send(error);
+  }
 };
+
 
 
 
@@ -186,7 +163,16 @@ const getPostsByUsername = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const posts = await Post.findAll({ where: { userId: user.id } }); 
+    const posts = await Post.findAll({
+      where: {userId:user.id},
+      include: [
+        {
+          model: PostContent,
+          as: "postContent"
+        }
+      ]
+  })
+    
 
     res.status(200).send(posts);
   } catch (error) {
